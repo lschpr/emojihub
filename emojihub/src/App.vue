@@ -24,6 +24,7 @@
             >
               📂 Categorieën
             </router-link>
+            <h1>Lars Schipper</h1>
           </div>
         </div>
       </header>

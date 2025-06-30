@@ -6,7 +6,7 @@
       <select
         v-model="selected"
         @change="emitSelected"
-        class="w-full border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+        class="w-full max-w-xs border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
       >
         <option value="">Alle categorieën</option>
         <option v-for="cat in categories" :key="cat" :value="cat">{{ format(cat) }}</option>

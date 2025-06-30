@@ -9,7 +9,7 @@
         <router-link
           v-for="emoji in emojisInCat"
           :key="emoji.name"
-          :to="`/emoji/${emoji.name}`"
+          :to="`/emoji/${encodeURIComponent(emoji.name)}`"
           class="relative bg-white dark:bg-gray-800 shadow hover:shadow-lg transition rounded-xl p-4 flex flex-col items-center text-center border border-gray-200 dark:border-gray-700"
         >
           <button
@@ -22,7 +22,7 @@
 
           <div class="text-4xl mb-2" v-html="emoji.htmlCode[0]" />
           <p class="text-sm text-gray-700 dark:text-gray-200 font-medium truncate w-full">
-            {{ emoji.name }}
+            {{ formatName(emoji.name) }}
           </p>
         </router-link>
       </div>
@@ -46,7 +46,6 @@ interface Emoji {
 const props = defineProps<{
   category: string
   search: string
-  onlyFavorites?: boolean
 }>()
 
 const emojis = ref<Emoji[]>([])
@@ -57,27 +56,37 @@ onMounted(async () => {
   emojis.value = res.data
 })
 
+const normalize = (str: string) =>
+  str.toLowerCase().replace(/[\s&]+/g, '-')
+
 const filteredEmojis = computed(() =>
   emojis.value.filter((emoji) => {
-    const matchCategory = !props.category || emoji.category === props.category
-    const matchSearch = !props.search || emoji.name.toLowerCase().includes(props.search.toLowerCase())
-    const matchFavorite = !props.onlyFavorites || favorites.value.includes(emoji.name)
-    return matchCategory && matchSearch && matchFavorite
+    const matchCategory =
+      !props.category || normalize(emoji.category) === props.category
+    const matchSearch =
+      !props.search || emoji.name.toLowerCase().includes(props.search.toLowerCase())
+    return matchCategory && matchSearch
   })
 )
 
 const groupedEmojis = computed(() => {
   const groups: Record<string, Emoji[]> = {}
   for (const emoji of filteredEmojis.value) {
+    // Verwijder deze regel: if (!favorites.value.includes(emoji.name)) {
     if (!groups[emoji.category]) {
       groups[emoji.category] = []
     }
     groups[emoji.category].push(emoji)
+    // }
   }
   return groups
 })
+const format = (str: string) =>
+  str.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
 
-function format(str: string) {
-  return str.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
-}
+const formatName = (name: string) =>
+  name
+    .replace(/-type-\d(-\d)?/, '') // verwijder huidskleur aanduiding
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (l) => l.toUpperCase())
 </script>

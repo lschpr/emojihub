@@ -63,6 +63,7 @@ const route = useRoute()
 const emoji = ref<Emoji | null>(null)
 const copied = ref(false)
 
+
 const emojiCharacter = computed(() => {
   if (!emoji.value?.unicode?.length) return ''
   return emoji.value.unicode
@@ -72,7 +73,12 @@ const emojiCharacter = computed(() => {
 
 onMounted(async () => {
   const res = await api.get<Emoji[]>('/all')
-  emoji.value = res.data.find((e) => e.name === route.params.name)
+  const match = res.data.find(e => e.name === decodeURIComponent(route.params.name as string))
+  if (match) {
+    emoji.value = match
+  } else {
+    emoji.value = null
+  }
 })
 
 function copyEmoji() {

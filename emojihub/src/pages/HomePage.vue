@@ -4,7 +4,7 @@
 
     <div class="flex-1 space-y-8">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 class="text-2xl font-bold">📋 Emoji overzicht</h2>
+        <h2 class="text-2xl font-bold">Emoji overzicht</h2>
 
         <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <input
@@ -34,7 +34,7 @@
             <div class="text-3xl">
               {{ getEmojiCharacter(name) }}
             </div>
-            <p class="text-xs text-gray-700 dark:text-gray-300 truncate mt-1">
+            <p class="text-xs text-gray-700 dark:text-gray-300 truncate mt-1 w-full max-w-[7rem]">
               {{ name }}
             </p>
           </router-link>
