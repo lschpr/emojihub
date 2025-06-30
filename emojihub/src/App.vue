@@ -15,6 +15,14 @@
             <router-link
               to="/"
               class="text-sm text-gray-600 dark:text-gray-300 hover:underline"
+            >
+              🏠 Home
+            </router-link>
+            <router-link
+              to="/categories"
+              class="text-sm text-gray-600 dark:text-gray-300 hover:underline"
+            >
+              📂 Categorieën
             </router-link>
           </div>
         </div>

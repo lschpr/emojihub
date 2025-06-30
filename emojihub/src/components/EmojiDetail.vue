@@ -16,6 +16,9 @@
     <p class="text-sm text-gray-600 dark:text-gray-300">
       <strong>Unicode:</strong> {{ emoji.unicode.join(', ') }}
     </p>
+    <p class="text-sm text-gray-600 dark:text-gray-300">
+      <strong>HTML-code:</strong> {{ emoji.htmlCode.join(', ') }}
+    </p>
 
     <div class="mt-6 flex flex-col items-center gap-3">
       <button
