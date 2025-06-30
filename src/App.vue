@@ -34,6 +34,7 @@ import { RouterView } from 'vue-router'
 
 const isDark = ref(false)
 
+// 🌗 Optioneel: dark mode voorkeur opslaan
 onMounted(() => {
   isDark.value = localStorage.getItem('dark') === 'true'
 })
