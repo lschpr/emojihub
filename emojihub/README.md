@@ -48,3 +48,7 @@ GET /random
 GET /all/category/{category-name}
 GET /all/group/{group-name}
 worden client side opgeroepen
+
+AI USE
+
+Enige dingen waarvoor ik eigenlijk AI heb gebruikt is meer voor Error codes en een beetje Grafisch het er mooier uit te laten zien ( Emojis etc)

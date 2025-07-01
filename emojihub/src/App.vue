@@ -22,7 +22,7 @@
               to="/categories"
               class="text-sm text-gray-600 dark:text-gray-300 hover:underline"
             >
-              📂 Categorieën
+              📂 Categorieen
             </router-link>
             <h1>Lars Schipper</h1>
           </div>

@@ -1,7 +1,7 @@
 <template>
   <aside class="w-full sm:w-64 mb-6 sm:mb-0">
     <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">
-      Categorieën
+      Categorieen
     </h3>
     <ul class="space-y-2">
       <li v-for="cat in categories" :key="cat.value">
