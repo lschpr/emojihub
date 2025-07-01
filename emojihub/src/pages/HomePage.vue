@@ -1,94 +1,105 @@
 <template>
   <div class="flex flex-col sm:flex-row gap-6">
-    <CategorySidebar v-model:category="selectedCategory" />
+    <!-- Sidebarcategorieën -->
+    <CategorySidebar />
 
     <div class="flex-1 space-y-8">
+      <!-- Header: zoekveld + random-knop -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 class="text-2xl font-bold">Emoji overzicht</h2>
-
-        <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <input
-            v-model="search"
-            type="text"
-            placeholder="🔍 Zoek een emoji..."
-            class="w-full sm:w-64 px-3 py-2 border rounded-md shadow-sm dark:bg-gray-800 dark:border-gray-700"
-          />
-          <button
-            @click="goToRandomEmoji"
-            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition whitespace-nowrap"
-          >
-            🎲 Willekeurige emoji
-          </button>
-        </div>
+        <input
+          v-model="search"
+          type="text"
+          placeholder="🔍 Zoek een emoji..."
+          class="flex-1 px-3 py-2 border rounded shadow-sm dark:bg-gray-800 dark:border-gray-700"
+        />
+        <button
+          @click="goToRandomEmoji"
+          class="mt-2 sm:mt-0 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+        >
+          🎲 Willekeurige emoji
+        </button>
       </div>
 
-      <div v-if="favorites.length > 0" class="space-y-3">
+      <!-- Favorieten -->
+      <div v-if="favorites.length" class="space-y-2">
         <h3 class="text-xl font-semibold">⭐ Mijn favorieten</h3>
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
-          <router-link
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+          <div
             v-for="name in favorites"
             :key="name"
-            :to="`/emoji/${name}`"
-            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow rounded-xl p-3 flex flex-col items-center text-center"
+            class="relative p-3 bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center"
           >
-            <div class="text-3xl">
-              {{ getEmojiCharacter(name) }}
-            </div>
-            <p class="text-xs text-gray-700 dark:text-gray-300 truncate mt-1 w-full max-w-[7rem]">
-              {{ name }}
-            </p>
-          </router-link>
+            <!-- Verwijder-ster -->
+            <button
+              @click.stop.prevent="toggleFavorite(name)"
+              class="absolute top-1 right-1 text-lg"
+              title="Verwijder uit favorieten"
+            >⭐</button>
+            <RouterLink :to="`/emoji/${encodeURIComponent(name)}`" class="text-3xl mb-1">
+              {{ getEmojiChar(name) }}
+            </RouterLink>
+            <p class="text-xs dark:text-gray-300 truncate">{{ formatName(name) }}</p>
+          </div>
         </div>
       </div>
 
+      <!-- Emoji-overzicht -->
       <EmojiList :category="selectedCategory" :search="search" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute, RouterLink } from 'vue-router'
 import api from '../services/api'
 import EmojiList from '../components/EmojiList.vue'
 import CategorySidebar from '../components/CategorySidebar.vue'
 import { useFavorites } from '../composables/useFavorites'
 
+// Router
 const router = useRouter()
 const route = useRoute()
 
-const selectedCategory = ref(route.query.category ? String(route.query.category) : '')
+// Zoekterm
 const search = ref('')
 
-const { favorites } = useFavorites()
-const emojiMap = ref<Record<string, { unicode: string[] }>>({})
-
-// Als de URL verandert (bijv. door back/forward knop), update de geselecteerde categorie
-watch(() => route.query.category, (val) => {
-  selectedCategory.value = val ? String(val) : ''
+// Geselecteerde categorie uit URL ?category=…
+const selectedCategory = computed<string>(() => {
+  const q = route.query.category
+  return typeof q === 'string' ? q : ''
 })
 
-watch(selectedCategory, (val) => {
-  router.replace({ query: { ...route.query, category: val || undefined } })
-})
+// Favorieten composable
+const { favorites, toggleFavorite } = useFavorites()
 
+// Voor emoji-char in favorieten preview
+const emojiMap = ref<Record<string, string>>({})
 onMounted(async () => {
-  const res = await api.get('/all')
-  for (const emoji of res.data) {
-    emojiMap.value[emoji.name] = emoji
-  }
+  const { data } = await api.get('/all')
+  data.forEach((e: any) => {
+    emojiMap.value[e.name] = e.unicode
+      .map((u: string) => String.fromCodePoint(parseInt(u.replace('U+', ''), 16)))
+      .join('')
+  })
 })
 
-const getEmojiCharacter = (name: string) => {
-  const unicode = emojiMap.value[name]?.unicode || []
-  return unicode
-    .map(code => String.fromCodePoint(parseInt(code.replace('U+', ''), 16)))
-    .join('')
+// Haal één karakter uit de map
+function getEmojiChar(name: string): string {
+  return emojiMap.value[name] || ''
 }
 
+// Strip huidskleur suffix en maak leesbare naam
+function formatName(n: string): string {
+  return n
+    .replace(/-type-\d(-\d)?/, '')
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, l => l.toUpperCase())
+}
+
+// Navigeren naar een random emoji
 async function goToRandomEmoji() {
-  const res = await api.get('/random')
-  router.push(`/emoji/${res.data.name}`)
+  const { data } = await api.get('/random')
+  router.push(`/emoji/${encodeURIComponent(data.name)}`)
 }
 </script>
-

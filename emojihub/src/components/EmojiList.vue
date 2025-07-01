@@ -1,13 +1,15 @@
 <template>
   <div class="space-y-8">
-    <div v-for="(emojisInCat, cat) in groupedEmojis" :key="cat">
-      <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100 capitalize">
-        {{ format(cat) }}
+    <div v-for="(group, category) in groupedEmojis" :key="category">
+      <h3
+        class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100 capitalize"
+      >
+        {{ format(category) }}
       </h3>
 
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <router-link
-          v-for="emoji in emojisInCat"
+          v-for="emoji in group"
           :key="emoji.name"
           :to="`/emoji/${encodeURIComponent(emoji.name)}`"
           class="relative bg-white dark:bg-gray-800 shadow hover:shadow-lg transition rounded-xl p-4 flex flex-col items-center text-center border border-gray-200 dark:border-gray-700"
@@ -20,7 +22,9 @@
             <span v-else>☆</span>
           </button>
 
-          <div class="text-4xl mb-2" v-html="emoji.htmlCode[0]" />
+          <!-- Render alle htmlCode entries aan elkaar -->
+          <div class="text-4xl mb-2" v-html="emoji.htmlCode.join('')"></div>
+
           <p class="text-sm text-gray-700 dark:text-gray-200 font-medium truncate w-full">
             {{ formatName(emoji.name) }}
           </p>
@@ -31,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import api from '../services/api'
 import { useFavorites } from '../composables/useFavorites'
 
@@ -49,44 +53,46 @@ const props = defineProps<{
 }>()
 
 const emojis = ref<Emoji[]>([])
-const { favorites, isFavorite, toggleFavorite } = useFavorites()
+const { isFavorite, toggleFavorite } = useFavorites()
 
-onMounted(async () => {
-  const res = await api.get<Emoji[]>('/all')
+async function loadEmojis() {
+  const path = props.category
+    ? `/all/category/${props.category}`
+    : '/all'
+  const res = await api.get<Emoji[]>(path)
   emojis.value = res.data
-})
+}
 
-const normalize = (str: string) =>
-  str.toLowerCase().replace(/[\s&]+/g, '-')
+onMounted(loadEmojis)
+watch(() => props.category, loadEmojis)
+watch(() => props.search, loadEmojis)
 
+// Client‐side zoekfilter
 const filteredEmojis = computed(() =>
-  emojis.value.filter((emoji) => {
-    const matchCategory =
-      !!props.category || normalize(emoji.category) === normalize(props.category)
-    const matchSearch =
-      !props.search || emoji.name.toLowerCase().includes(props.search.toLowerCase())
-    return matchCategory && matchSearch
-  })
+  emojis.value.filter(e =>
+    !props.search ||
+    e.name.toLowerCase().includes(props.search.toLowerCase())
+  )
 )
 
 const groupedEmojis = computed(() => {
   const groups: Record<string, Emoji[]> = {}
-  for (const emoji of filteredEmojis.value) {
-    // Verwijder deze regel: if (!favorites.value.includes(emoji.name)) {
-    if (!groups[emoji.category]) {
-      groups[emoji.category] = []
-    }
-    groups[emoji.category].push(emoji)
-    // }
+  for (const e of filteredEmojis.value) {
+    if (!groups[e.category]) groups[e.category] = []
+    groups[e.category].push(e)
   }
   return groups
 })
-const format = (str: string) =>
-  str.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
 
-const formatName = (name: string) =>
-  name
-    .replace(/-type-\d(-\d)?/, '') // verwijder huidskleur aanduiding
+function format(str: string) {
+  return str
     .replace(/-/g, ' ')
-    .replace(/\b\w/g, (l) => l.toUpperCase())
+    .replace(/\b\w/g, l => l.toUpperCase())
+}
+function formatName(name: string) {
+  return name
+    .replace(/-type-\d(-\d)?/, '')
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, l => l.toUpperCase())
+}
 </script>
