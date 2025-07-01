@@ -14,8 +14,7 @@ Features
 
 - Op de home pagina worden alle emojis getoond en als je naar beneden scrollt zie je de emoji categorieen
 - Vue met vite project.
-- roept alles va API netjes aan.
-- API van EmojiHub omgeroepen door Axois
+- roept alles netjes aan van de API EmojiHub door Axios
 - Favorieten systeem + wordt opgeslagen in local storage.
 - Detail pagina voor elke emoji.
 - Zoekbalk.
