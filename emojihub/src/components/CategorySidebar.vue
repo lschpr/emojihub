@@ -30,8 +30,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'// ✅ dit moet erbij
 
+const router = useRouter()
+const route = useRoute()
 const emit = defineEmits<{
   (e: 'update:category', value: string): void
 }>()
@@ -52,6 +55,7 @@ const categories = [
 const select = (value: string) => {
   selected.value = value
   emit('update:category', value)
+  router.replace({ query: { ...route.query, category: value || undefined } })
 }
 
 const emitSelected = () => {

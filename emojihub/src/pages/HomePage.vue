@@ -47,19 +47,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import api from '../services/api'
 import EmojiList from '../components/EmojiList.vue'
 import CategorySidebar from '../components/CategorySidebar.vue'
 import { useFavorites } from '../composables/useFavorites'
 
-const selectedCategory = ref('')
-const search = ref('')
 const router = useRouter()
+const route = useRoute()
+
+const selectedCategory = ref(route.query.category ? String(route.query.category) : '')
+const search = ref('')
 
 const { favorites } = useFavorites()
 const emojiMap = ref<Record<string, { unicode: string[] }>>({})
+
+// Als de URL verandert (bijv. door back/forward knop), update de geselecteerde categorie
+watch(() => route.query.category, (val) => {
+  selectedCategory.value = val ? String(val) : ''
+})
+
+watch(selectedCategory, (val) => {
+  router.replace({ query: { ...route.query, category: val || undefined } })
+})
 
 onMounted(async () => {
   const res = await api.get('/all')
@@ -80,3 +91,4 @@ async function goToRandomEmoji() {
   router.push(`/emoji/${res.data.name}`)
 }
 </script>
+

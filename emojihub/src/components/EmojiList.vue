@@ -62,7 +62,7 @@ const normalize = (str: string) =>
 const filteredEmojis = computed(() =>
   emojis.value.filter((emoji) => {
     const matchCategory =
-      !props.category || normalize(emoji.category) === props.category
+      !!props.category || normalize(emoji.category) === normalize(props.category)
     const matchSearch =
       !props.search || emoji.name.toLowerCase().includes(props.search.toLowerCase())
     return matchCategory && matchSearch
